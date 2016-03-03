@@ -36,6 +36,9 @@ defmodule BuildClient.Parser do
           {:unknown_system, explanation} ->
             IO.puts "Unknown system: #{explanation}"
         end
+      ["schedule_deploy", system, schedule | _options] ->
+        IO.puts "Scheduling deploy #{system} on #{schedule}"
+        #GenServer.
       [command, system, cron_sched] ->
         IO.puts "Received: Command - #{command}, System - #{system}, CRON Schedule - #{cron_sched}"
       _ -> IO.puts "Invalid command format"
