@@ -36,9 +36,21 @@ defmodule BuildClient.Parser do
           {:unknown_system, explanation} ->
             IO.puts "Unknown system: #{explanation}"
         end
-      ["schedule_deploy", system, schedule | _options] ->
+      ["schedule_deploy", system, schedule | options] ->
         IO.puts "Scheduling deploy #{system} on #{schedule}"
-        #GenServer.
+        case schedule |> BuildClient.Client.user_schedule_to_cron do
+          {:cron_schedule, cron_schedule} ->
+            case BuildClient.Client.request_schedule_deploy(system, cron_schedule, options) do
+              :ok ->
+                IO.puts "Deploy #{system} was scheduled at #{schedule}"
+              {:failed, message} ->
+                IO.puts message
+              _ ->
+                IO.puts "Unsupported reply from build server. Probably, something went wrong..."
+            end
+          {:invalid_format, message} ->
+            IO.puts message
+        end
       [command, system, cron_sched] ->
         IO.puts "Received: Command - #{command}, System - #{system}, CRON Schedule - #{cron_sched}"
       _ -> IO.puts "Invalid command format"
