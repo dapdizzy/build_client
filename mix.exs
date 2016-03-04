@@ -7,6 +7,8 @@ defmodule BuildClient.Mixfile do
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     description: "AX Deployment Client",
+     package: package,
      deps: deps]
   end
 
@@ -29,5 +31,14 @@ defmodule BuildClient.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     []
+  end
+
+  defp package do
+    [
+      files: ["lib", "mix.exs"],
+      maintainers: ["Dmitry A Pyatkov"],
+      licences: ["Can be used under FREE Licence for any purpose whatsoever."],
+      links: %{"GitHub" => "https://github.com/dapdizzy/build_client"}
+    ]
   end
 end

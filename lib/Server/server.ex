@@ -3,11 +3,13 @@ defmodule BuildClient.Server do
 
   # Client API
   def start_link(state) do
+    IO.puts "Starting deploy client server with state: #{inspect state}"
     GenServer.start_link(__MODULE__, state, name: BuildClient)
   end
 
   # Server Callbacks
   def init(state) do
+    IO.puts "Deploy client server started with state: #{inspect state}"
     {:ok, state}
   end
 

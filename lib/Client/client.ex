@@ -12,8 +12,8 @@ defmodule BuildClient.Client do
     get_server_name |> GenServer.call({:get_configuration, system})
   end
 
-  def request_schedule_deploy(system, schedule, options \\ []) do
-    get_server_name |> GenServer.call({:schedule_deploy, system |> String.to_atom, schedule, options})
+  def request_schedule_deploy(system, schedule, build_client, options \\ []) do
+    get_server_name |> GenServer.call({:schedule_deploy, system |> String.to_atom, schedule, build_client, options})
   end
 
   defp get_server_name do
@@ -85,7 +85,7 @@ defmodule BuildClient.Client do
   end
 
   defp invalid_format_string do
-    "Invalid schedule format, supported formats are:
+"Invalid schedule format, supported formats are:
 Date formats:
 #{supported_date_formats_string}
 Time formats:

@@ -17,6 +17,7 @@ defmodule BuildClient do
     IO.puts "Connected nodes: #{inspect Node.list}"
 
     children = [
+      worker(BuildClient.Server, [[]]),
       worker(BuildClient.Parser, [])
       # Define workers and child supervisors to be supervised
       # worker(BuildClient.Worker, [arg1, arg2, arg3]),

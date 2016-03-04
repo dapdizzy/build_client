@@ -40,7 +40,7 @@ defmodule BuildClient.Parser do
         IO.puts "Scheduling deploy #{system} on #{schedule}"
         case schedule |> BuildClient.Client.user_schedule_to_cron do
           {:cron_schedule, cron_schedule} ->
-            case BuildClient.Client.request_schedule_deploy(system, cron_schedule, options) do
+            case BuildClient.Client.request_schedule_deploy(system, cron_schedule, {BuildClient, node()}, options) do
               :ok ->
                 IO.puts "Deploy #{system} was scheduled at #{schedule}"
               {:failed, message} ->
