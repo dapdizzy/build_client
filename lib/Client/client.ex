@@ -1,19 +1,30 @@
 defmodule BuildClient.Client do
-  def list_systems do
-    get_server_name |> GenServer.call(:list_systems)
+
+  # Server interaction API
+
+  def get_help(server \\ get_server_name) do
+    server |> GenServer.call(:get_help)
   end
 
-  def has_system(system) do
-    get_server_name |> GenServer.call({:has_system, system})
+  def list_commands(server \\ get_server_name) do
+    server |> GenServer.call(:list_commands)
   end
 
-  def get_configuration(system) do
-    IO.puts "Looking for configuration for system #{system}"
-    get_server_name |> GenServer.call({:get_configuration, system})
+  def list_systems(server \\ get_server_name) do
+    server |> GenServer.call(:list_systems)
   end
 
-  def request_schedule_deploy(system, schedule, build_client, options \\ []) do
-    get_server_name |> GenServer.call({:schedule_deploy, system |> String.to_atom, schedule, build_client, options})
+  def has_system(server \\ get_server_name, system) do
+    server |> GenServer.call({:has_system, system})
+  end
+
+  def get_configuration(server \\ get_server_name, system) do
+    #IO.puts "Looking for configuration for system #{system}"
+    server |> GenServer.call({:get_configuration, system})
+  end
+
+  def request_schedule_deploy(server \\ get_server_name, system, schedule, build_client, options \\ []) do
+    server |> GenServer.call({:schedule_deploy, system |> String.to_atom, schedule, build_client, options})
   end
 
   defp get_server_name do
@@ -63,7 +74,7 @@ defmodule BuildClient.Client do
                 {:cron_schedule, ds |> user_sched_to_cron |> sched_list_to_cron_string}
               true -> {:invalid_format, invalid_format_string}
             end
-          {:time, ts_info} = ts ->
+          {:time, _ts_info} = ts ->
             IO.puts "Got time schedule info"
             cond do
               ts |> validate_sched ->
@@ -320,7 +331,7 @@ Or any combination of valid date and time formats separated by space."
     true
   end
 
-  def validate_sched({:date, {:day, day, :month, month, :year, year}})
+  def validate_sched({:date, {:day, day, :month, month, :year, _year}})
   when day > 0 and day <= 31 and month > 0 and month <= 12
   do
     true
@@ -339,7 +350,15 @@ Or any combination of valid date and time formats separated by space."
   end
 
   def configuration_to_list(configuration = %{}) do
-    for {k, v} <- configuration, into: [], do: "#{k}=#{v}\r\n"
+    for {k, v} <- configuration, into: [], do: "#{k}=#{v |> invert_slashes(k)}\r\n"
+  end
+
+  defp invert_slashes(val, key) do
+    # Invert slashes for all entries, except TFS URLs where they are approproate
+    case Regex.match(~r/TFS/, key) do
+      true -> val
+      false -> val |> String.replace("/", "\\")
+    end
   end
 
   def list_to_string(l) do
