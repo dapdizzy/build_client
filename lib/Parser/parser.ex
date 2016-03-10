@@ -65,6 +65,19 @@ defmodule BuildClient.Parser do
     agent |> get_systems_mapping |> lookup_system_name(system_string |> String.upcase)
   end
 
+  defp parse_system!(agent, system_name) do
+    case agent |> parse_system(system_name) do
+      {:wrong_system, _system_string} ->
+        IO.puts "Wrong system name"
+        IO.write "Valid values are: "
+        agent |> get_systems |> Enum.join(", ") |> IO.write
+        IO.puts ""
+        throw :done
+      {:ok, system_atom} ->
+        system_atom
+    end
+  end
+
   defp extract_commands(%ParserState{} = agent_state) do
     agent_state.commands
   end
@@ -164,19 +177,23 @@ defmodule BuildClient.Parser do
             {:unknown_system, explanation} ->
               IO.puts "Unknown system: #{explanation}"
           end
-        ["deploy", system] ->
-          case system |> String.to_atom |> BuildClient.Client.get_configuration do
+        ["deploy", system_name] ->
+          system = agent |> parse_system!(system_name)
+          case system |> BuildClient.Client.get_configuration do
             {:configuration, %{} = configuration} ->
               configuration |>
               BuildClient.Client.configuration_to_list |>
               BuildClient.Client.list_to_string |>
-              String.replace("/", "\\") |>
+              # String.replace("/", "\\") |>
               BuildClient.Client.create_deploy_configuration()
               l = spawn_link BuildClient.Client, :run_deploy_script, []
               IO.puts "Deploy script has been spawned with PID #{inspect l}"
             {:unknown_system, explanation} ->
               IO.puts "Unknown system: #{explanation}"
           end
+        ["build", system_name] ->
+          system = agent |> parse_system!(system_name)
+          agent |> get_server |> BuildClient.Client.start_build(system, {BuildClient, node()})
         [full_action = "schedule_" <> action, system_string, schedule | options] ->
           case action do
             "deploy" -> :ok

@@ -31,6 +31,10 @@ defmodule BuildClient.Client do
     server |> GenServer.call({action, system, schedule, build_client, options})
   end
 
+  def start_build(server \\ get_server_name, system, build_client, options \\ []) do
+    server |> GenServer.call({:build, system, build_client, options})
+  end
+
   defp get_server_name do
     serverNode = Application.get_env(:build_client, :server_node)
     serverName = Application.get_env(:build_client, :server_name)
