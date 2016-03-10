@@ -2,6 +2,10 @@ defmodule BuildClient.Client do
 
   # Server interaction API
 
+  def get_build_info(server \\ get_server_name, system) do
+    server |> GenServer.call({:get_build_info, system})
+  end
+
   def get_help(server \\ get_server_name) do
     server |> GenServer.call(:get_help)
   end
@@ -23,8 +27,8 @@ defmodule BuildClient.Client do
     server |> GenServer.call({:get_configuration, system})
   end
 
-  def request_schedule_deploy(server \\ get_server_name, system, schedule, build_client, options \\ []) do
-    server |> GenServer.call({:schedule_deploy, system |> String.to_atom, schedule, build_client, options})
+  def request_schedule_action(server \\ get_server_name, action, system, schedule, build_client, options \\ []) do
+    server |> GenServer.call({action, system, schedule, build_client, options})
   end
 
   defp get_server_name do
@@ -355,17 +359,29 @@ Or any combination of valid date and time formats separated by space."
 
   defp invert_slashes(val, key) do
     # Invert slashes for all entries, except TFS URLs where they are approproate
-    case Regex.match(~r/TFS/, key) do
-      true -> val
-      false -> val |> String.replace("/", "\\")
+    cond do
+      not is_binary(val) ->
+        val
+      not Regex.match?(~r/TFS/, key) ->
+        val |> String.replace("/", "\\")
+      true ->
+        val
     end
+    # case Regex.match?(~r/TFS/, key) do
+    #   true -> val
+    #   false -> val |> String.replace("/", "\\")
+    # end
   end
 
   def list_to_string(l) do
     for i <- l, into: "", do: "#{i}"
   end
 
-  def create_deploy_configuration(configuration_string, filename \\ "DeplyParameters.txt") do
+  def create_deploy_configuration(configuration_string, filename \\ "DeployParameters.txt") do
+    Application.get_env(:build_client, :scripts_dir) |> Path.join(filename) |> File.write!(configuration_string, [:binary, {:encoding, :utf8}])
+  end
+
+  def create_build_configuration(configuration_string, filename \\ "BuildParameters.txt") do
     Application.get_env(:build_client, :scripts_dir) |> Path.join(filename) |> File.write!(configuration_string, [:binary, {:encoding, :utf8}])
   end
 
@@ -376,6 +392,18 @@ Or any combination of valid date and time formats separated by space."
     deployLogDir |> File.mkdir!
     logFileName = deployLogDir |> Path.join("DeployAXOutput.log")
     cl = "powershell .\\DeployAX.ps1 > #{logFileName}"
+    |> String.to_char_list
+    IO.puts "Calling os.cmd with the following args #{inspect cl}"
+    cl |> :os.cmd
+  end
+
+  def run_build_script do
+    logDir = Application.get_env(:build_client, :scripts_dir)
+    logDir |> File.cd!
+    buildLogDir = logDir |> Path.join("BuildLog#{BuildClient.Parser.get_dateTime_string}")
+    buildLogDir |> File.mkdir!
+    logFileName = buildLogDir |> Path.join("BuildAXOutput.log")
+    cl = "powershell .\\BuildAX.ps1 > #{logFileName}"
     |> String.to_char_list
     IO.puts "Calling os.cmd with the following args #{inspect cl}"
     cl |> :os.cmd

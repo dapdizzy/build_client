@@ -1,6 +1,28 @@
 defmodule BuildClient.Parser do
   def start_link(server, commands, systems) do
-    {:ok, agent} = Agent.start_link(fn -> %ServerState{server: server, commands: commands, systems: systems} end)
+    {:ok, agent} =
+      Agent.start_link(
+        fn -> %ParserState
+        {
+          server: server,
+          commands: commands,
+          systems: systems,
+          systems_mapping: create_systems_mapping(systems)
+        } end)
+    agent |> start_command_loop
+  end
+
+  defp create_systems_mapping(systems) do
+    for s <- systems, into: %{}, do: {atom_to_upper_string(s), s}
+  end
+
+  defp atom_to_upper_string(atom) do
+    atom |> Atom.to_string |> String.upcase
+  end
+
+  def start_command_loop(agent) do
+    IO.puts "\nHelp\n"
+    agent |> get_server |> BuildClient.Client.get_help |> IO.puts
     agent |> parse_user_input
   end
 
@@ -26,7 +48,24 @@ defmodule BuildClient.Parser do
     agent |> Agent.get(&(&1.server))
   end
 
-  defp extract_commands(%ServerState{} = agent_state) do
+  defp get_systems_mapping(agent) do
+    agent |> Agent.get(&(&1.systems_mapping))
+  end
+
+  defp lookup_system_name(systems_mapping, system_name) do
+    case systems_mapping[system_name] do
+      nil ->
+        {:wrong_system, system_name}
+      system ->
+        {:ok, system}
+    end
+  end
+
+  defp parse_system(agent, system_string) do
+    agent |> get_systems_mapping |> lookup_system_name(system_string |> String.upcase)
+  end
+
+  defp extract_commands(%ParserState{} = agent_state) do
     agent_state.commands
   end
 
@@ -55,16 +94,73 @@ defmodule BuildClient.Parser do
         _ -> raise "Invalid format validation result" #throw(:unbelieveable)
       end
       case pl do
-        ["get_configuration", system] ->
-          IO.puts "Asked for configuration for system #{system}"
-          case system |> String.to_atom |> BuildClient.Client.get_configuration do
+        ["h"|_t] ->
+          IO.puts "\nHelp\n"
+          agent |> get_server |> BuildClient.Client.get_help |> IO.puts
+        ["help"|_t] ->
+          IO.puts "\nHelp\n"
+          agent |> get_server |> BuildClient.Client.get_help |> IO.puts
+        ["list_commands"|_t] ->
+          "Commands: " |> IO.write
+          agent |> get_commands |> Enum.join(", ") |> IO.write
+          IO.puts ""
+        ["list_systems"|_t] ->
+          "Systems: " |> IO.write
+          agent |> get_systems |> Enum.join(", ") |> IO.write
+          IO.puts ""
+        ["get_build_info", system_name] ->
+          system =
+          case agent |> parse_system(system_name) do
+            {:wrong_system, _system_name} ->
+              IO.puts "Wrong system name"
+              IO.write "Valid values are: "
+              agent |> get_systems |> Enum.join(", ") |> IO.write
+              IO.puts ""
+              throw :done
+            {:ok, systen_atom} ->
+              systen_atom
+          end
+          case agent |> get_server |> BuildClient.Client.get_build_info(system) do
+            %{} = map ->
+              latest_build =
+              case map[:latest_build] do
+                nil -> "No build available"
+                build -> build
+              end
+              last_successful_build =
+              case map[:last_successful_build] do
+                nil -> "No build available"
+                build -> build
+              end
+              IO.puts "Latest build: #{latest_build}"
+              IO.puts "Last successful build: #{last_successful_build}"
+            :no_info ->
+              IO.puts "No information is available"
+            _ ->
+              IO.puts "Something went wrong with the request..."
+          end
+        ["get_configuration", system_name] ->
+          system =
+          case agent |> parse_system(system_name) do
+            {:wrong_system, _system_string} ->
+              IO.puts "Wrong system name"
+              IO.write "Valid values are: "
+              agent |> get_systems |> Enum.join(", ") |> IO.write
+              IO.puts ""
+              throw :done
+            {:ok, system_atom} ->
+              system_atom
+          end
+          IO.puts "Configuration for system #{system}"
+          case system |> BuildClient.Client.get_configuration do
             {:configuration, %{} = configuration} ->
               configuration_string = configuration |> BuildClient.Client.configuration_to_list |> BuildClient.Client.list_to_string
-              |> String.replace("/", "\\")
-              IO.puts "Configuration received:\n#{configuration_string}"
-              fileName = "DeployParameters#{get_dateTime_string}.txt"
-              configuration_string |> BuildClient.Client.create_deploy_configuration(fileName)
-              IO.puts "Outputetd configuration to #{fileName}"
+              # |> String.replace("/", "\\")
+              |> IO.puts
+              # "Configuration received:\n#{configuration_string}"
+              # fileName = "DeployParameters#{get_dateTime_string}.txt"
+              # configuration_string |> BuildClient.Client.create_deploy_configuration(fileName)
+              # IO.puts "Outputetd configuration to #{fileName}"
             {:unknown_system, explanation} ->
               IO.puts "Unknown system: #{explanation}"
           end
@@ -81,11 +177,28 @@ defmodule BuildClient.Parser do
             {:unknown_system, explanation} ->
               IO.puts "Unknown system: #{explanation}"
           end
-        ["schedule_deploy", system, schedule | options] ->
-          IO.puts "Scheduling deploy #{system} on #{schedule}"
+        [full_action = "schedule_" <> action, system_string, schedule | options] ->
+          case action do
+            "deploy" -> :ok
+            "build" -> :ok
+            _ -> throw :invalid_command
+          end
+          system =
+          case agent |> parse_system(system_string) do
+            {:wrong_system, _system_string} ->
+              IO.puts "Wrong system name"
+              IO.write "Valid values are: "
+              agent |> get_systems |> Enum.join(", ") |> IO.write
+              IO.puts ""
+              throw :done
+            {:ok, system_atom} ->
+              system_atom
+          end
+          IO.puts "Scheduling #{action} #{system} on #{schedule}"
           case schedule |> BuildClient.Client.user_schedule_to_cron do
             {:cron_schedule, cron_schedule} ->
-              case BuildClient.Client.request_schedule_deploy(system, cron_schedule, {BuildClient, node()}, options) do
+              case agent |> get_server |>
+                BuildClient.Client.request_schedule_action(String.to_atom(full_action), system, cron_schedule, {BuildClient, node()}, options) do
                 :ok ->
                   IO.puts "Deploy #{system} was scheduled at #{schedule}"
                 {:failed, message} ->
@@ -96,11 +209,13 @@ defmodule BuildClient.Parser do
             {:invalid_format, message} ->
               IO.puts message
           end
-        [command, system, cron_sched] ->
-          IO.puts "Received: Command - #{command}, System - #{system}, Schedule - #{cron_sched}"
-        _ -> IO.puts "Invalid command format"
+        # [command, system, cron_sched] ->
+        #   IO.puts "Received: Command - #{command}, System - #{system}, Schedule - #{cron_sched}"
+        _ -> throw :invalid_command_format
       end
     catch
+      :done ->
+        :done
       :invalid_command_format ->
         IO.puts "Invalid command format\n"
         agent |> get_server |> BuildClient.Client.get_help |> IO.puts

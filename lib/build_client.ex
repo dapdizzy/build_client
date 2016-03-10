@@ -9,11 +9,16 @@ defmodule BuildClient do
     serverNode = Application.get_env(:build_client, :server_node)
     serverName = Application.get_env(:build_client, :server_name)
 
-    IO.puts "Server node: #{serverNode}, Serve rname: #{serverName}"
+    # IO.puts "Server node: #{serverNode}, Serve rname: #{serverName}"
 
     IO.puts "Connecting to server #{serverNode}"
-    cr = Node.connect(serverNode)
-    IO.puts "Connection result: #{inspect cr}"
+    case cr = Node.connect(serverNode) do
+      true -> IO.puts "Successfuly connected"
+      false -> raise "Failed to connect to server. Contact your AX Build Admnistrator."
+      :ignore -> raise "Seem like the server node is not alive. Contact your AX Build Administrator."
+      _ -> raise "Weird connection result. Contact your AX Build Administrator."
+    end
+    # IO.puts "Connection result: #{inspect cr}"
     IO.puts "Connected nodes: #{inspect Node.list}"
 
     server = {serverName, serverNode}
