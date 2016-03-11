@@ -226,6 +226,19 @@ defmodule BuildClient.Parser do
             {:invalid_format, message} ->
               IO.puts message
           end
+        ["schedule_ping", schedule] ->
+          case schedule |> BuildClient.Client.user_schedule_to_cron do
+            {:cron_schedule, cron_schedule} ->
+              case agent |> get_server |>
+                BuildClient.Client.schedule_ping(cron_schedule, {BuildClient, node()}) do
+                :ok ->
+                  IO.puts "Schedule ping request sent to server"
+                _ ->
+                  IO.puts "Unsupported reply from build server. Probably, something went wrong..."
+              end
+            {:invalid_format, message} ->
+              IO.puts message
+          end
         # [command, system, cron_sched] ->
         #   IO.puts "Received: Command - #{command}, System - #{system}, Schedule - #{cron_sched}"
         _ -> throw :invalid_command_format

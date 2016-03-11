@@ -33,6 +33,7 @@ defmodule BuildClient.Server do
     BuildClient.Client.list_to_string |>
     # String.replace("/", "\\") |>
     BuildClient.Client.create_deploy_configuration()
+    system |> set_system_configuration(:deploy_configuration)
     l = spawn_link BuildClient.Client, :run_deploy_script, []
     IO.puts "Deploy script for #{system} has been spawned with PID #{inspect l}"
     {:reply, :ok, state}
@@ -44,9 +45,15 @@ defmodule BuildClient.Server do
     BuildClient.Client.list_to_string |>
     # String.replace("/", "\\") |>
     BuildClient.Client.create_build_configuration()
+    system |> set_system_configuration(:build_configuration)
     l = spawn_link BuildClient.Client, :run_build_script, []
     IO.puts "Build script for #{system} has been spawned with PID #{inspect l}"
     {:reply, :ok, state}
+  end
+
+  def handle_call(:ping, from, state) do
+    IO.puts "Ping received from #{inspect from}"
+    {:reply, :pong, state}
   end
 
 end

@@ -35,6 +35,10 @@ defmodule BuildClient.Client do
     server |> GenServer.call({:build, system, build_client, options})
   end
 
+  def schedule_ping(server \\ get_server_name, schedule, client) do
+    server |> GenServer.call({:schedule_ping, schedule, client})
+  end
+
   defp get_server_name do
     serverNode = Application.get_env(:build_client, :server_node)
     serverName = Application.get_env(:build_client, :server_name)
@@ -104,12 +108,12 @@ defmodule BuildClient.Client do
   end
 
   defp invalid_format_string do
-"Invalid schedule format, supported formats are:
-Date formats:
-#{supported_date_formats_string}
-Time formats:
-#{supported_time_formats_string}
-Or any combination of valid date and time formats separated by space."
+  "Invalid schedule format, supported formats are:
+  Date formats:
+  #{supported_date_formats_string}
+  Time formats:
+  #{supported_time_formats_string}
+  Or any combination of valid date and time formats separated by space."
   end
 
   defp supported_date_formats_string do
@@ -411,5 +415,29 @@ Or any combination of valid date and time formats separated by space."
     |> String.to_char_list
     IO.puts "Calling os.cmd with the following args #{inspect cl}"
     cl |> :os.cmd
+  end
+
+  defp set_current_client_configuration(configuration_name) do
+    scripts_dir = Application.get_env(:build_client, :scripts_dir)
+    scripts_dir |> File.cd!
+    "powershell .\\Set-CurrentAXClientConfiguration.ps1 #{configuration_name}"
+    |> String.to_char_list
+    |> :os.cmd
+  end
+
+  defp get_system_configurtation(system, configuration_type)
+    when configuration_type === :build_configuration
+    or configuration_type === :deploy_configuration do
+      Application.get_env(:build_client, configuration_type)[system]
+    end
+  end
+
+  defp get_system_configurtation(_system, configuration_type) do
+    raise "Invalid configuration type #{configuration_type}"
+  end
+
+  def set_system_configuration(system, configuration_type) do
+    system |> get_system_configurtation(configuration_type)
+    |> set_current_client_configuration
   end
 end
