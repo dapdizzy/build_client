@@ -239,6 +239,11 @@ defmodule BuildClient.Parser do
             {:invalid_format, message} ->
               IO.puts message
           end
+        ["my_client"] ->
+          IO.write "Your client is: "
+          client = agent |> get_server |> BuildClient.Client.my_client
+          IO.write "#{inspect client}"
+          IO.puts ""
         # [command, system, cron_sched] ->
         #   IO.puts "Received: Command - #{command}, System - #{system}, Schedule - #{cron_sched}"
         _ -> throw :invalid_command_format

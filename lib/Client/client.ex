@@ -2,6 +2,14 @@ defmodule BuildClient.Client do
 
   # Server interaction API
 
+  def my_client(server \\ get_server_name) do
+    server |> GenServer.call({:my_client, node() |> get_host_name})
+  end
+
+  def connect(server \\ get_server_name, client) do
+    server |> GenServer.call({:connect, client})
+  end
+
   def get_build_info(server \\ get_server_name, system) do
     server |> GenServer.call({:get_build_info, system})
   end
@@ -426,10 +434,9 @@ defmodule BuildClient.Client do
   end
 
   defp get_system_configurtation(system, configuration_type)
-    when configuration_type === :build_configuration
-    or configuration_type === :deploy_configuration do
-      Application.get_env(:build_client, configuration_type)[system]
-    end
+  when configuration_type === :build_configuration
+  or configuration_type === :deploy_configuration do
+    Application.get_env(:build_client, configuration_type)[system]
   end
 
   defp get_system_configurtation(_system, configuration_type) do
@@ -439,5 +446,9 @@ defmodule BuildClient.Client do
   def set_system_configuration(system, configuration_type) do
     system |> get_system_configurtation(configuration_type)
     |> set_current_client_configuration
+  end
+
+  defp get_host_name(node_name) do
+    node_name |> to_string |> String.split("@") |> List.last
   end
 end

@@ -13,7 +13,7 @@ defmodule BuildClient.Server do
   end
 
   # Server Callbacks
-  def init(%ServerState{server: _server, commands: _commands, systems: _systems} = state) do
+  def init(%ServerState{server: server, commands: _commands, systems: _systems} = state) do
     # IO.puts(
     # """
     # Initializing deploy client server with the following options:
@@ -22,6 +22,11 @@ defmodule BuildClient.Server do
     # systems: #{inspect systems}
     # """)
     # IO.puts "Deploy client server started with state: #{inspect state}"
+
+    IO.puts "Establishing server connectivity"
+    :ok = server |> BuildClient.Client.connect({BuildClient, node()})
+    IO.puts "Connected"
+
     {:ok, state}
   end
 
@@ -33,7 +38,7 @@ defmodule BuildClient.Server do
     BuildClient.Client.list_to_string |>
     # String.replace("/", "\\") |>
     BuildClient.Client.create_deploy_configuration()
-    system |> set_system_configuration(:deploy_configuration)
+    system |> BuildClient.Client.set_system_configuration(:deploy_configuration)
     l = spawn_link BuildClient.Client, :run_deploy_script, []
     IO.puts "Deploy script for #{system} has been spawned with PID #{inspect l}"
     {:reply, :ok, state}
@@ -45,7 +50,7 @@ defmodule BuildClient.Server do
     BuildClient.Client.list_to_string |>
     # String.replace("/", "\\") |>
     BuildClient.Client.create_build_configuration()
-    system |> set_system_configuration(:build_configuration)
+    system |> BuildClient.Client.set_system_configuration(:build_configuration)
     l = spawn_link BuildClient.Client, :run_build_script, []
     IO.puts "Build script for #{system} has been spawned with PID #{inspect l}"
     {:reply, :ok, state}
