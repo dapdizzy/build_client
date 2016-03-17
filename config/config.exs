@@ -29,20 +29,20 @@ use Mix.Config
 #
 #     import_config "#{Mix.env}.exs"
 config :build_client,
-  server_node: :s15@MOW04DEV014, server_name: BuildServer,
+  server_node: :s18@MOW04DEV014, server_name: BuildServer,
   scripts_dir: "C:/AX/BuildScripts",
   log_dir: "C:/Logs",
   configurations:
     %{
       build_configuration:
         %{
-          Fax: "test",
+          Fax: "Test",
           Wax: nil,
           Lips: "lips"
           },
       deploy_configuration:
         %{
-          Fax: "test",
+          Fax: "Rest",
           Wax: nil,
           Lips: "lips"
         }

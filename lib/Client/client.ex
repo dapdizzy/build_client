@@ -436,7 +436,7 @@ defmodule BuildClient.Client do
   defp get_system_configurtation(system, configuration_type)
   when configuration_type === :build_configuration
   or configuration_type === :deploy_configuration do
-    Application.get_env(:build_client, configuration_type)[system]
+    Application.get_env(:build_client, :configurations)[configuration_type][system]
   end
 
   defp get_system_configurtation(_system, configuration_type) do
