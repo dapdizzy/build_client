@@ -42,7 +42,7 @@ config :build_client,
           },
       deploy_configuration:
         %{
-          Fax: "Rest",
+          Fax: "FAX",
           Wax: nil,
           Lips: "lips"
         }
