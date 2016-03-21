@@ -29,7 +29,7 @@ use Mix.Config
 #
 #     import_config "#{Mix.env}.exs"
 config :build_client,
-  server_node: :s18@MOW04DEV014, server_name: BuildServer,
+  server_node: :s25@MOW04DEV014, server_name: BuildServer,
   scripts_dir: "C:/AX/BuildScripts",
   log_dir: "C:/Logs",
   configurations:

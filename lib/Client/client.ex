@@ -6,6 +6,14 @@ defmodule BuildClient.Client do
     server |> GenServer.call({:my_client, node() |> get_host_name})
   end
 
+  def my_schedule(server \\ get_server_name) do
+    server |> GenServer.call({:my_schedule, node() |> get_host_name})
+  end
+
+  def remove_schedule(server \\ get_server_name, schedule) do
+    server |> GenServer.call({:remove_schedule, schedule, node() |> get_host_name})
+  end
+
   def connect(server \\ get_server_name, client) do
     server |> GenServer.call({:connect, client})
   end
@@ -112,6 +120,14 @@ defmodule BuildClient.Client do
         end
       _ ->
         {:invalid_format, invalid_format_string}
+    end
+  end
+
+  def cron_schedule!(user_schedule) do
+    case user_schedule |> user_schedule_to_cron do
+      {:cron_schedule, cron_schedule} -> cron_schedule
+      {:invalid_format, message} -> raise message
+      _ -> raise "Could not convert user format #{user_schedule} to CRON format"
     end
   end
 

@@ -239,10 +239,24 @@ defmodule BuildClient.Parser do
             {:invalid_format, message} ->
               IO.puts message
           end
+        ["remove_schedule", schedule] ->
+          cron_schedule = schedule |> BuildClient.Client.cron_schedule!
+          case cron_schedule |> BuildClient.Client.remove_schedule do
+            {:ok, deleted_schedules} ->
+              deleted_schedules_list = for deleted_schedule <- deleted_schedules, into: [], do: "#{deleted_schedule.command} on #{deleted_schedule.schedule}"
+              IO.puts ~s/The following jobs scheduled on #{schedule} have been removed:\n#{deleted_schedules_list |> Enum.join("\n")}/
+            :nothing_is_scheduled ->
+              IO.puts "Nothing is scheduled on #{schedule}"
+            _ -> raise "Could not remove schedule on #{schedule}"
+          end
         ["my_client"] ->
           IO.write "Your client is: "
           client = agent |> get_server |> BuildClient.Client.my_client
           IO.write "#{inspect client}"
+          IO.puts ""
+        ["my_schedule"] ->
+          your_schedule = agent |> get_server |> BuildClient.Client.my_schedule
+          IO.puts your_schedule
           IO.puts ""
         # [command, system, cron_sched] ->
         #   IO.puts "Received: Command - #{command}, System - #{system}, Schedule - #{cron_sched}"
