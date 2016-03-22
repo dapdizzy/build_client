@@ -121,6 +121,27 @@ defmodule BuildClient.Parser do
           "Systems: " |> IO.write
           agent |> get_systems |> Enum.join(", ") |> IO.write
           IO.puts ""
+        ["get_build_configuration", system_name] ->
+          system = case agent |> parse_system(system_name) do
+            {:wrong_system, _system_name} ->
+              IO.puts "Wrong system name"
+              IO.write "Valid values are: "
+              agent |> get_systems |> Enum.join(", ") |> IO.write
+              IO.puts ""
+              throw :done
+            {:ok, systen_atom} ->
+              systen_atom
+          end
+          case agent |> get_server |> BuildClient.Client.get_build_configuration(system) do
+            {:configuration, %{} = server_configuration} ->
+              IO.puts "Build configuration for #{system}:"
+              server_configuration
+              |> Map.merge(BuildClient.Client.get_system_client_configuration_parameters(system, :build_configuration))
+              |> BuildClient.Client.configuration_to_list |> BuildClient.Client.list_to_string
+              |> IO.puts
+            {:unknown_system, explanation} ->
+              IO.puts "Unknown system: #{explanation}"
+          end
         ["get_build_info", system_name] ->
           system =
           case agent |> parse_system(system_name) do

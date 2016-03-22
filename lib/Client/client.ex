@@ -43,6 +43,10 @@ defmodule BuildClient.Client do
     server |> GenServer.call({:get_configuration, system})
   end
 
+  def get_build_configuration(server \\ get_server_name, system) do
+    server |> GenServer.call({:get_build_configuration, system})
+  end
+
   def request_schedule_action(server \\ get_server_name, action, system, schedule, build_client, options \\ []) do
     server |> GenServer.call({action, system, schedule, build_client, options})
   end
@@ -452,10 +456,21 @@ defmodule BuildClient.Client do
   defp get_system_configurtation(system, configuration_type)
   when configuration_type === :build_configuration
   or configuration_type === :deploy_configuration do
-    Application.get_env(:build_client, :configurations)[configuration_type][system]
+    Application.get_env(:build_client, :configurations)[configuration_type][system][:configuration_name]
   end
 
   defp get_system_configurtation(_system, configuration_type) do
+    raise "Invalid configuration type #{configuration_type}"
+  end
+
+  def get_system_client_configuration_parameters(system, configuration_type)
+  when configuration_type === :build_configuration
+  or configuration_type == :deploy_configuration
+  do
+    Application.get_env(:build_client, :configurations)[configuration_type][system] |> Map.get(:configuration_parameters, %{})
+  end
+
+  def get_system_client_configuration_parameters(_system, configuration_type) do
     raise "Invalid configuration type #{configuration_type}"
   end
 

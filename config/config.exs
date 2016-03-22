@@ -29,21 +29,35 @@ use Mix.Config
 #
 #     import_config "#{Mix.env}.exs"
 config :build_client,
-  server_node: :s25@MOW04DEV014, server_name: BuildServer,
+  server_node: :s1@MOW04DEV014, server_name: BuildServer,
   scripts_dir: "C:/AX/BuildScripts",
   log_dir: "C:/Logs",
   configurations:
     %{
       build_configuration:
         %{
-          Fax: "Test",
-          Wax: nil,
-          Lips: "lips"
+          Fax:
+            %{
+              configuration_name: "Test",
+              configuration_parameters:
+                %{
+                  "VCSFilePath" => "C:/Program Files/Microsoft Dynamics AX/60/Server/AXTest/bin/Application/FAX/Definition/VCSDef.xml",
+                  "ApplicationSourceDir" => "C:/Program Files/Microsoft Dynamics AX/60/Server/AXTest/bin/Application/FAX",
+                  "DropLocation" => "C:/AX/Build/Drop/Fax",
+                  "BackupModelStoreFolder" => "C:/AX/Backup/Modelstore",
+                  "CleanBackupFileName" => "C:/Program Files/Microsoft SQL Server/MSSQL12.MSSQLSERVER/MSSQL/Backup/AXR3.bak"
+                }
+            },
+          Wax: %{configuration_name: nil},
+          Lips: %{configuration_name: "lips"}
           },
       deploy_configuration:
         %{
-          Fax: "FAX",
-          Wax: nil,
-          Lips: "lips"
+          Fax:
+            %{
+              configuration_name: "FAX"
+            },
+          Wax: %{configuration_name: nil},
+          Lips: %{configuration_name: "lips"}
         }
     }

@@ -34,6 +34,7 @@ defmodule BuildClient.Server do
 
   def handle_call({:start_deploy, system, configuration, _options}, _from, %ServerState{} = state) do
     configuration |>
+    Map.merge(BuildClient.Client.get_system_client_configuration_parameters(system, :deploy_configuration)) |>
     BuildClient.Client.configuration_to_list |>
     BuildClient.Client.list_to_string |>
     # String.replace("/", "\\") |>
@@ -46,6 +47,7 @@ defmodule BuildClient.Server do
 
   def handle_call({:start_build, system, configuration, _options}, _from, %ServerState{} = state) do
     configuration |>
+    Map.merge(BuildClient.Client.get_system_client_configuration_parameters(system, :build_configuration)) |>
     BuildClient.Client.configuration_to_list |>
     BuildClient.Client.list_to_string |>
     # String.replace("/", "\\") |>
