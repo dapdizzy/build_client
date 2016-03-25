@@ -14,6 +14,10 @@ defmodule BuildClient.Client do
     server |> GenServer.call({:remove_schedule, schedule, node() |> get_host_name})
   end
 
+  def clear_schedule(server \\ get_server_name) do
+    server |> GenServer.call({:clear_schedule, node() |> get_host_name})
+  end
+
   def connect(server \\ get_server_name, client) do
     server |> GenServer.call({:connect, client})
   end
@@ -22,8 +26,11 @@ defmodule BuildClient.Client do
     server |> GenServer.call({:get_build_info, system})
   end
 
-  def get_help(server \\ get_server_name) do
-    server |> GenServer.call(:get_help)
+  def get_help(server \\ get_server_name, command \\ nil) do
+    case command do
+      nil -> server |> GenServer.call(:get_help)
+      _ -> server |> GenServer.call({:get_help, command})
+    end
   end
 
   def list_commands(server \\ get_server_name) do

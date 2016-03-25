@@ -107,12 +107,16 @@ defmodule BuildClient.Parser do
         _ -> raise "Invalid format validation result" #throw(:unbelieveable)
       end
       case pl do
-        ["h"|_t] ->
+        ["h"] ->
           IO.puts "\nHelp\n"
           agent |> get_server |> BuildClient.Client.get_help |> IO.puts
-        ["help"|_t] ->
+        ["help"] ->
           IO.puts "\nHelp\n"
           agent |> get_server |> BuildClient.Client.get_help |> IO.puts
+        ["h", command] ->
+          agent |> get_server |> BuildClient.Client.get_help(command) |> IO.puts
+        ["help", command] ->
+          agent |> get_server |> BuildClient.Client.get_help(command) |> IO.puts
         ["list_commands"|_t] ->
           "Commands: " |> IO.write
           agent |> get_commands |> Enum.join(", ") |> IO.write
@@ -269,6 +273,11 @@ defmodule BuildClient.Parser do
             :nothing_is_scheduled ->
               IO.puts "Nothing is scheduled on #{schedule}"
             _ -> raise "Could not remove schedule on #{schedule}"
+          end
+        ["clear_schedule"] ->
+          case agent |> get_server |> BuildClient.Client.clear_schedule do
+            :ok -> IO.puts "Your schedule has been cleared"
+            _ -> IO.puts "Something went wrong...\nYour should probably contant your AX Build Administrator, but that's up to You."
           end
         ["my_client"] ->
           IO.write "Your client is: "
