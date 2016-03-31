@@ -218,7 +218,7 @@ defmodule BuildClient.Parser do
           end
         ["build", system_name] ->
           system = agent |> parse_system!(system_name)
-          agent |> get_server |> BuildClient.Client.start_build(system, {BuildClient, node()})
+          agent |> get_server |> BuildClient.Client.start_build(system, {BuildClient, node()}, [])
         [full_action = "schedule_" <> action, system_string, schedule | options] ->
           case action do
             "deploy" -> :ok
