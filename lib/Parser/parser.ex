@@ -155,28 +155,30 @@ defmodule BuildClient.Parser do
               agent |> get_systems |> Enum.join(", ") |> IO.write
               IO.puts ""
               throw :done
-            {:ok, systen_atom} ->
-              systen_atom
+            {:ok, system_atom} ->
+              system_atom
           end
-          case agent |> get_server |> BuildClient.Client.get_build_info(system) do
-            %{} = map ->
-              latest_build =
-              case map[:latest_build] do
-                nil -> "No build available"
-                build -> build
-              end
-              last_successful_build =
-              case map[:last_successful_build] do
-                nil -> "No build available"
-                build -> build
-              end
-              IO.puts "Latest build: #{latest_build}"
-              IO.puts "Last successful build: #{last_successful_build}"
-            :no_info ->
-              IO.puts "No information is available"
-            _ ->
-              IO.puts "Something went wrong with the request..."
-          end
+          :ok = agent |> get_server |> BuildClient.Client.get_build_info(system)
+          # Moved to the Client Serve rcallback
+          # case agent |> get_server |> BuildClient.Client.get_build_info(system) do
+          #   %{} = map ->
+          #     latest_build =
+          #     case map[:latest_build] do
+          #       nil -> "No build available"
+          #       build -> build
+          #     end
+          #     last_successful_build =
+          #     case map[:last_successful_build] do
+          #       nil -> "No build available"
+          #       build -> build
+          #     end
+          #     IO.puts "Latest build: #{latest_build}"
+          #     IO.puts "Last successful build: #{last_successful_build}"
+          #   :no_info ->
+          #     IO.puts "No information is available"
+          #   _ ->
+          #     IO.puts "Something went wrong with the request..."
+          # end
         ["get_configuration", system_name] ->
           system =
           case agent |> parse_system(system_name) do

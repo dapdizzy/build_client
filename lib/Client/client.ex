@@ -23,7 +23,7 @@ defmodule BuildClient.Client do
   end
 
   def get_build_info(server \\ get_server_name, system) do
-    server |> GenServer.call({:get_build_info, system})
+    server |> GenServer.call({:get_build_info, system, node()})
   end
 
   def get_help(server \\ get_server_name, command \\ nil) do

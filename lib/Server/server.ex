@@ -63,4 +63,16 @@ defmodule BuildClient.Server do
     {:reply, :pong, state}
   end
 
+  def handle_call({:build_info, build_info}, _from, state) do
+    case build_info do
+      %{latest_build: latest_build, last_successful_build: last_successful_build} ->
+        IO.puts "Latest build: #{latest_build}\nLast successful build: #{last_successful_build}"
+      %{latest_build: latest_build} ->
+        IO.puts "Latest build: #{latest_build}"
+      _ ->
+        IO.puts "No information available"
+    end
+    {:reply, :ok, state}
+  end
+
 end
