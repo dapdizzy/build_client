@@ -209,6 +209,7 @@ defmodule BuildClient.Parser do
           case system |> BuildClient.Client.get_configuration do
             {:configuration, %{} = configuration} ->
               configuration |>
+              Map.merge(BuildClient.Client.get_system_client_configuration_parameters(system, :deploy_configuration)) |>
               BuildClient.Client.configuration_to_list |>
               BuildClient.Client.list_to_string |>
               # String.replace("/", "\\") |>

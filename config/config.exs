@@ -29,35 +29,63 @@ use Mix.Config
 #
 #     import_config "#{Mix.env}.exs"
 config :build_client,
-  server_node: :sloc1@MOW04DEV014, server_name: BuildServer,
+  server_node: :bs1@MOW04DEV014, server_name: BuildServer,
   scripts_dir: "C:/AX/BuildScripts",
-  log_dir: "C:/Logs",
+  log_dir: "C:/AX/Log",
   configurations:
     %{
       build_configuration:
         %{
           Fax:
             %{
-              configuration_name: "Test",
+              configuration_name: "FAX",
               configuration_parameters:
                 %{
-                  "VCSFilePath" => "C:/Program Files/Microsoft Dynamics AX/60/Server/AXTest/bin/Application/FAX/Definition/VCSDef.xml",
-                  "ApplicationSourceDir" => "C:/Program Files/Microsoft Dynamics AX/60/Server/AXTest/bin/Application/FAX",
-                  "DropLocation" => "C:/AX/Build/Drop/Fax",
-                  "BackupModelStoreFolder" => "C:/AX/Backup/Modelstore",
+                  "VCSFilePath" => "C:/Program Files/Microsoft Dynamics AX/60/Server/FAX/bin/Application/FAX/Definition/VCSDef.xml",
+                  "ApplicationSourceDir" => "C:/Program Files/Microsoft Dynamics AX/60/Server/FAX/bin/Application/FAX",
+                  "DropLocation" => "G:/AX/Build/Drop/Fax",
+                  "BackupModelStoreFolder" => "C:/AX/Backup/Modelstore/AXR3",
                   "CleanBackupFileName" => "C:/Program Files/Microsoft SQL Server/MSSQL12.MSSQLSERVER/MSSQL/Backup/AXR3.bak"
                 }
             },
+            # %{
+            #   configuration_name: "Test",
+            #   configuration_parameters:
+            #     %{
+            #       "VCSFilePath" => "C:/Program Files/Microsoft Dynamics AX/60/Server/AXTest/bin/Application/FAX/Definition/VCSDef.xml",
+            #       "ApplicationSourceDir" => "C:/Program Files/Microsoft Dynamics AX/60/Server/AXTest/bin/Application/FAX",
+            #       "DropLocation" => "C:/AX/Build/Drop/Fax",
+            #       "BackupModelStoreFolder" => "C:/AX/Backup/Modelstore",
+            #       "CleanBackupFileName" => "C:/Program Files/Microsoft SQL Server/MSSQL12.MSSQLSERVER/MSSQL/Backup/AXR3.bak"
+            #     }
+            # },
           Wax: %{configuration_name: nil},
-          Lips: %{configuration_name: "lips"}
+          Lips: %{configuration_name: "lips"},
+          StdR3:
+            %{
+              configuration_name: "Test",
+              configuration_parameters:
+                %{
+                  "VCSFilePath" => "C:/Program Files/Microsoft Dynamics AX/60/Server/AXTest/bin/Application/DAXSTDR3/Definition/VCSDef.xml",
+                  "ApplicationSourceDir" => "C:/Program Files/Microsoft Dynamics AX/60/Server/AXTest/bin/Application/DAXSTDR3",
+                  "DropLocation" => "C:/AX/Build/Drop/StdR3",
+                  "BackupModelStoreFolder" => "C:/AX/Backup/Modelstore",
+                  "CleanBackupFileName" => "C:/Program Files/Microsoft SQL Server/MSSQL12.MSSQLSERVER/MSSQL/Backup/AXR3.bak"
+                }
+            }
           },
       deploy_configuration:
         %{
           Fax:
             %{
-              configuration_name: "FAX"
+              configuration_name: "Fax",
+			        configuration_parameters:
+                %{
+				          drop_location: "\\MOW04DEV014\Fax"
+			          }
             },
           Wax: %{configuration_name: nil},
-          Lips: %{configuration_name: "lips"}
+          Lips: %{configuration_name: "lips"},
+          StdR3: %{configuration_name: "AXR3"}
         }
     }

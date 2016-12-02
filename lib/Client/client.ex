@@ -50,6 +50,10 @@ defmodule BuildClient.Client do
     server |> GenServer.call({:get_configuration, system})
   end
 
+  def get_client_configuration(system, configuration_type) when configuration_type === :build_configuration or configuration_type === :deploy_configuration do
+    Application.get_env(:build_client, :configurations)[configuration_type][system].configuration_parameters
+  end
+
   def get_build_configuration(server \\ get_server_name, system) do
     server |> GenServer.call({:get_build_configuration, system})
   end
@@ -441,8 +445,9 @@ defmodule BuildClient.Client do
   end
 
   def run_build_script do
-    logDir = Application.get_env(:build_client, :scripts_dir)
-    logDir |> File.cd!
+    scriptsDir = Application.get_env(:build_client, :scripts_dir)
+    scriptsDir |> File.cd!
+    logDir = Application.get_env(:build_client, :log_dir)
     buildLogDir = logDir |> Path.join("BuildLog#{BuildClient.Parser.get_dateTime_string}")
     buildLogDir |> File.mkdir!
     logFileName = buildLogDir |> Path.join("BuildAXOutput.log")
