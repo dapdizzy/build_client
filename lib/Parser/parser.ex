@@ -219,9 +219,9 @@ defmodule BuildClient.Parser do
             {:unknown_system, explanation} ->
               IO.puts "Unknown system: #{explanation}"
           end
-        ["build", system_name] ->
+        ["build", system_name | options] ->
           system = agent |> parse_system!(system_name)
-          agent |> get_server |> BuildClient.Client.start_build(system, {BuildClient, node()}, [])
+          agent |> get_server |> BuildClient.Client.start_build(system, {BuildClient, node()}, options)
         [full_action = "schedule_" <> action, system_string, schedule | options] ->
           case action do
             "deploy" -> :ok
