@@ -75,6 +75,10 @@ defmodule BuildClient.Client do
     server |> GenServer.call({:schedule_ping, schedule, client})
   end
 
+  def get_scripts_share(server \\ get_server_name) do
+    server |> GenServer.call(:get_scripts_share)
+  end
+
   defp get_server_name do
     serverNode = Application.get_env(:build_client, :server_node)
     serverName = Application.get_env(:build_client, :server_name)
@@ -414,7 +418,7 @@ defmodule BuildClient.Client do
     cond do
       not is_binary(val) ->
         val
-      not Regex.match?(~r/TFS/, key) ->
+      not Regex.match?(~r/TFS/, "#{key}") ->
         val |> String.replace("/", "\\")
       true ->
         val

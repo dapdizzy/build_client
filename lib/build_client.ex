@@ -3,15 +3,16 @@ defmodule BuildClient do
 
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
-  def start(_type, _args) do
+  def start(_type, args) do
     import Supervisor.Spec, warn: false
 
-    serverNode = Application.get_env(:build_client, :server_node)
-    serverName = Application.get_env(:build_client, :server_name)
+    serverNode = args[:server] || Application.get_env(:build_client, :server_node)
+    serverName = args[:process_name] || Application.get_env(:build_client, :server_name)
 
     # IO.puts "Server node: #{serverNode}, Serve rname: #{serverName}"
 
     IO.puts "Connecting to server #{serverNode}"
+    Process.sleep(3000)
     case cr = Node.connect(serverNode) do
       true -> IO.puts "Successfuly connected"
       false -> raise "Failed to connect to server. Contact your AX Build Admnistrator."

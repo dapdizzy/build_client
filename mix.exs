@@ -9,6 +9,7 @@ defmodule BuildClient.Mixfile do
      start_permanent: Mix.env == :prod,
      description: "AX Deployment Client",
      package: package,
+     escript: [main_module: BuildClient.CLI],
      deps: deps]
   end
 

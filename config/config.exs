@@ -29,9 +29,9 @@ use Mix.Config
 #
 #     import_config "#{Mix.env}.exs"
 config :build_client,
-  server_node: :Serv2@MOW04WAXBLD01, server_name: BuildServer,
-  scripts_dir: "C:/Ax/Build/Scripts",
-  log_dir: "C:/Ax/Build/Log",
+  server_node: :Serv3@MOW04WAXBLD01, server_name: BuildServer,
+  scripts_dir: "C:/Ax/Build/WAXR3/Scripts",
+  log_dir: "C:/Ax/Build/WAXr3/Log",
   configurations:
     %{
       build_configuration:
@@ -53,10 +53,11 @@ config :build_client,
         %{
           WaxR3:
             %{
-              configuration_name: "WaxR3",
+              configuration_name: "local",
 			        configuration_parameters:
                 %{
-				          drop_location: "//MOW04WAXBLD01/Ax/Build/Drop/WAXR3"
+				          # drop_location: "//MOW04WAXBLD01/Ax/Build/Drop/WAXR3"
+                  "SystemName" => "WaxR3"
 			          }
             }
         }

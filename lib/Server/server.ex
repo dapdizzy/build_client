@@ -27,6 +27,8 @@ defmodule BuildClient.Server do
     :ok = server |> BuildClient.Client.connect({BuildClient, node()})
     IO.puts "Connected"
 
+    ensure_scripts_present
+
     {:ok, state}
   end
 
@@ -73,6 +75,28 @@ defmodule BuildClient.Server do
         IO.puts "No information available"
     end
     {:reply, :ok, state}
+  end
+
+  # Helpers
+
+  defp ensure_scripts_present do
+    scripts_dir = Application.get_env(:build_client, :scripts_dir, "")
+    unless scripts_dir |> File.exists?, do: raise "Scripts directory (#{scripts_dir}) does not exist"
+    case scripts_dir |> File.ls do
+      {:ok, list} ->
+        if list |> Enum.empty? do
+          server_scripts_share = BuildClient.Client.get_scripts_share()
+          IO.puts "Client scripts folder (#{scripts_dir}) is empty. Going to copy scripts from the server scripts share (#{server_scripts_share})"
+          copy_scripts server_scripts_share, scripts_dir
+        end
+      {:error, reason} -> raise "#{reason}"
+    end
+  end
+
+  defp copy_scripts(from, to) do
+    ~s|robocopy "#{from}" "#{to}" /s /z|
+      |> String.to_char_list
+      |> :os.cmd
   end
 
 end
